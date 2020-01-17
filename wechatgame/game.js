@@ -10,7 +10,7 @@ function _main_() {
   // 先加载首屏纹理,因为它是异步加载的,加载过程中可以同步做后面的初始化工作
   const firstFlashImageLoadPromise = new Promise(function (resolve, _){    
     const image = wx.createImage();
-    image.onLoad = function(){
+    image.onload = function(){
       resolve(image);
     }
     image.src = "first_flash.jpg";
@@ -37,8 +37,8 @@ function _main_() {
     uniform sampler2D uSampler;
 
     void main(void){
-      // gl_FragColor = texture2D(uSampler, vTextureCoord);
-      gl_FragColor = vec4(0, 0.8, 0, 1);
+      gl_FragColor = texture2D(uSampler, vTextureCoord);
+      // gl_FragColor = vec4(0, 0.8, 0, 1);
     }
   `;
 
@@ -75,17 +75,23 @@ function _main_() {
   // objects we'll be drawing
   const buffers = initQuadBuffers(gl);
 
+  let firstFlashTexture = null;
+
   // 首屏图片加载完成后初始化 webgl 纹理
   firstFlashImageLoadPromise.then(function(image){
     // 加载首屏纹理
-    const texture = loadTexture(gl, image);
+    firstFlashTexture = loadTexture(gl, image);
     image.src = ""; // 清除图片的内存占用
-
-    requestAnimationFrame(function(){
-      drawScene(gl, programInfo, buffers, texture, 0);
-    });
-    
   });
+
+  function loop(){
+    if(firstFlashTexture){
+      drawScene(gl, programInfo, buffers, firstFlashTexture, 0);
+    }
+    requestAnimationFrame(loop);
+  }
+  
+  requestAnimationFrame(loop);
   return ;
 
 }
@@ -169,10 +175,10 @@ function initQuadBuffers(gl){
   gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
   const textureCoordinates = [
-    0.0, 0.0,
-    1.0, 0.0,
+    0.0, 1.0,    
     1.0, 1.0,
-    0.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
@@ -206,6 +212,7 @@ function loadTexture(gl, image){
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  return texture;
 }
 
 /**
@@ -247,6 +254,6 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime){
   gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
   {  // 绘制全屏四边形
-    gl.drawElements(gl.TRIANGLES, 4, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
   }
 }
