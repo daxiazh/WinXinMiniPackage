@@ -3,6 +3,25 @@ wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因�
 
 _main_();
 
+// 加载子包
+const loadTask = wx.loadSubpackage({
+  name: 'stage1', // name 可以填 name 或者 root
+  success: function (res) {
+    // 分包加载成功后通过 success 回调
+  },
+  fail: function (res) {
+    // 分包加载失败通过 fail 回调
+  }
+});
+
+loadTask.onProgressUpdate(res => {
+  console.log('下载进度', res.progress)
+  console.log('已经下载的数据长度', res.totalBytesWritten)
+  console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
+})
+
+return;
+
 /**
  * 目前用于快速显示首屏,放在主包中执行的函数
  */
@@ -38,6 +57,7 @@ function _main_() {
   `;
 
   const canvas = wx.createCanvas();   // 创建画布
+  screencanvas = canvas;
   var gl = canvas.getContext('webgl');// 获取 webgl
 
   // Initialize a shader program; this is where all the lighting
