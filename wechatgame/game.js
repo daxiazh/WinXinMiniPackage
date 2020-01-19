@@ -1,37 +1,14 @@
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为开始时我们主要是在加载资源.
 
-_main_();
-
 // 保存子包下载的进度信息
 let subpackageLoadingInfo = {
   progress: 0,
   totalBytesWritten: 0,
   totalBytesExpectedToWrite: 0
 };
-let subpackageLoaded = false; // 标识子包是否已经下载完成
 
-// 加载子包
-const loadTask = wx.loadSubpackage({
-  name: 'stage1', // name 可以填 name 或者 root
-  success: function (res) {
-    // 分包加载成功后通过 success 回调
-    subpackageLoaded = true;
-    wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了    
-  },
-  fail: function (res) {
-    // 分包加载失败通过 fail 回调
-  }
-});
-
-loadTask.onProgressUpdate(res => {
-  subpackageLoadingInfo = res;
-  console.log('下载进度', res.progress)
-  console.log('已经下载的数据长度', res.totalBytesWritten)
-  console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
-})
-
-return;
+_main_();
 
 /**
  * 目前用于快速显示首屏,放在主包中执行的函数
@@ -79,14 +56,14 @@ function _main_() {
       title: '初始化首屏 Shader 失败',
       content: errLog,
     })
-    return;
+    return false;
   }
 
   // Collect all the info needed to use the shader program.
   // Look up which attributes out shader program is using
   // for aVertexPosition, aTextureCoord and also
   // look up uniform locations.
-  const programInfo = {
+  let programInfo = {
     program: shaderProgram,
     attribLocations:{
       vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
@@ -113,7 +90,7 @@ function _main_() {
 
   // 主循环函数,显示loading条
   function loop(){
-    if(subpackageLoaded){
+    if(programInfo === null){
       return ; // 已经加载完成子包,不再需要此首屏渲染了
     }
     
@@ -122,10 +99,44 @@ function _main_() {
     }    
     requestAnimationFrame(loop);
   }
-  
-  requestAnimationFrame(loop);
-  return ;
 
+  if(true){
+  // 加载子包
+  const loadSubPackagePromise = new Promise(function (resolve, reject){
+    const loadTask = wx.loadSubpackage({
+      name: 'stage1', // name 可以填 name 或者 root
+      success: function (res) {
+        // 分包加载成功后通过 success 回调
+        resolve();
+      },
+      fail: function (res) {
+        reject();
+        // 分包加载失败通过 fail 回调
+      }
+    });
+    
+    loadTask.onProgressUpdate(res => {
+      subpackageLoadingInfo = res;
+      console.log('下载进度', res.progress)
+      console.log('已经下载的数据长度', res.totalBytesWritten)
+      console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
+    });  
+  })
+
+  // 等待子包的加载
+  loadSubPackagePromise.then(function(){
+    // 释放占用的资源
+    //gl.deleteProgram(programInfo.program);
+    //firstFlashTexture && gl.deleteTexture(firstFlashTexture);
+    programInfo = null;
+    buffers = null;
+    wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了    
+  });
+}
+  
+  // 开始主循环
+  requestAnimationFrame(loop);
+  return true;
 }
 
 // ------------------------ 下面是封装的函数 ---------------------------------
