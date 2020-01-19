@@ -45,7 +45,7 @@ function _main_() {
   `;
 
   const canvas = wx.createCanvas();   // 创建画布
-  screencanvas = canvas;              // 强制 cocos 引擎使用同一个 canvas
+  screencanvas = initCanvas(canvas);              // 强制 cocos 引擎使用同一个 canvas
   var gl = canvas.getContext('webgl');// 获取 webgl
 
   // Initialize a shader program; this is where all the lighting
@@ -140,6 +140,67 @@ function _main_() {
 }
 
 // ------------------------ 下面是封装的函数 ---------------------------------
+
+/**
+ * 按照 cocos 的方式来填充一些函数,具体见: stage1\libs\weapp-adapter\Canvas.js 文件与 stage1\libs\weapp-adapter\HTMLCanvasElement.js:26 文件的实现
+ * 要不在真机上运行不过,因为下面这些函数会被使用
+ * @param {*} canvas 
+ */
+function initCanvas(canvas){
+  canvas.type = 'canvas';
+
+  canvas.getBoundingClientRect = function () {
+    var ret = {
+      top: 0,
+      left: 0,
+      width: windowWidth,
+      height: windowHeight
+    };
+    return ret;
+  };
+
+  canvas.style = {
+    top: '0px',
+    left: '0px',
+    width: windowWidth + 'px',
+    height: windowHeight + 'px'
+  };
+
+  canvas.addEventListener = function (type, listener) {
+    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    // console.log('canvas.addEventListener', type);
+    document.addEventListener(type, listener, options);
+  };
+
+  canvas.removeEventListener = function (type, listener) {
+    // console.log('canvas.removeEventListener', type);
+    document.removeEventListener(type, listener);
+  };
+
+  canvas.dispatchEvent = function () {
+    var event = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    console.log('canvas.dispatchEvent', event.type, event);
+    // nothing to do
+  };
+
+  Object.defineProperty(canvas, 'clientWidth', {
+    enumerable: true,
+    get: function get() {
+      return windowWidth;
+    }
+  });
+
+  Object.defineProperty(canvas, 'clientHeight', {
+    enumerable: true,
+    get: function get() {
+      return windowHeight;
+    }
+  });
+
+  return canvas;
+}
 
 /**
  * 根据传入的shader源码初始化 shader program
