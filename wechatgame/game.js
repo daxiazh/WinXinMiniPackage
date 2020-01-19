@@ -1,14 +1,33 @@
 
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 
+// 加载子包
+const loadTask = wx.loadSubpackage({
+  name: 'stage1', // name 可以填 name 或者 root
+  success: function(res) {
+    // 分包加载成功后通过 success 回调
+  },
+  fail: function(res) {
+    // 分包加载失败通过 fail 回调
+  }
+});
+
+loadTask.onProgressUpdate(res => {
+  console.log('下载进度', res.progress)
+  console.log('已经下载的数据长度', res.totalBytesWritten)
+  console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
+})
+
 wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为我们主要是在加载资源.
 _main_canvas_();
+
 
 /**
  * 通过 canvas 来绘制,比 webgl 实现节省代码量
  */
 function _main_canvas_(){
   const canvas = wx.createCanvas();   // 创建画布
+  subPackageScreenCanvas = canvas;
   var ctx = canvas.getContext('2d');  // 获取 canvas
 
   const bgImage = wx.createImage();       // 背景图片
@@ -18,8 +37,9 @@ function _main_canvas_(){
   const loadingBarImageLoading = loadImage(loadingBarBG, "first_package_images/loading_bar.png");
 
   Promise.all([bgImageLoading, loadingBarImageLoading]).then(function(){
-
+    // 开始绘制进度条场景
     requestAnimationFrame(loop);
+    require
   });
 
   /**
@@ -46,7 +66,7 @@ function _main_canvas_(){
    */
   function loop(){
     drawScene();
-    requestAnimationFrame(loop);
+    // requestAnimationFrame(loop);
   }
 }
 
