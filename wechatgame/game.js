@@ -1,6 +1,9 @@
 
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 
+wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为我们主要是在加载资源.
+_main_canvas_();
+
 // 加载子包
 const loadTask = wx.loadSubpackage({
   name: 'stage1', // name 可以填 name 或者 root
@@ -18,9 +21,9 @@ loadTask.onProgressUpdate(res => {
   console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
 })
 
-wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为我们主要是在加载资源.
-_main_canvas_();
+return;
 
+//------------------下面是函数实现 ---------------------------------------------------------------------------------------
 
 /**
  * 通过 canvas 来绘制,比 webgl 实现节省代码量
