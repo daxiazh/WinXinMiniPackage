@@ -5,7 +5,19 @@
 		"es6": false,
 		"postcss": true,
 		"minified": false,
-		"newFeature": false
+		"newFeature": false,
+		"coverView": true,
+		"autoAudits": false,
+		"showShadowRootInWxmlPanel": true,
+		"scopeDataCheck": false,
+		"checkInvalidKey": true,
+		"checkSiteMap": true,
+		"uploadWithSourceMap": true,
+		"babelSetting": {
+			"ignore": [],
+			"disablePlugins": [],
+			"outputPath": ""
+		}
 	},
 	"compileType": "game",
 	"libVersion": "game",
