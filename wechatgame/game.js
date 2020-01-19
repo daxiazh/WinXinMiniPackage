@@ -3,11 +3,21 @@ wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因�
 
 _main_();
 
+// 保存子包下载的进度信息
+let subpackageLoadingInfo = {
+  progress: 0,
+  totalBytesWritten: 0,
+  totalBytesExpectedToWrite: 0
+};
+let subpackageLoaded = false; // 标识子包是否已经下载完成
+
 // 加载子包
 const loadTask = wx.loadSubpackage({
   name: 'stage1', // name 可以填 name 或者 root
   success: function (res) {
     // 分包加载成功后通过 success 回调
+    subpackageLoaded = true;
+    wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了    
   },
   fail: function (res) {
     // 分包加载失败通过 fail 回调
@@ -15,6 +25,7 @@ const loadTask = wx.loadSubpackage({
 });
 
 loadTask.onProgressUpdate(res => {
+  subpackageLoadingInfo = res;
   console.log('下载进度', res.progress)
   console.log('已经下载的数据长度', res.totalBytesWritten)
   console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
@@ -31,7 +42,7 @@ function _main_() {
   // 先加载首屏背景纹理,因为它是异步加载的,加载过程中可以同步做后面的初始化工作
   const bgImageLoading = loadImage("first_package_images/first_flash.jpg");
   
-  // 显示首屏纹理的 Vertex Shader
+  // 显示首屏背景纹理的 Vertex Shader
   const vsSource = `
     attribute vec2 aVertexPosition;
     attribute vec2 aTextureCoord;
@@ -57,7 +68,7 @@ function _main_() {
   `;
 
   const canvas = wx.createCanvas();   // 创建画布
-  screencanvas = canvas;
+  screencanvas = canvas;              // 强制 cocos 引擎使用同一个 canvas
   var gl = canvas.getContext('webgl');// 获取 webgl
 
   // Initialize a shader program; this is where all the lighting
@@ -100,13 +111,16 @@ function _main_() {
     image.src = ""; // 清除图片的内存占用
   });
 
+  // 主循环函数,显示loading条
   function loop(){
+    if(subpackageLoaded){
+      return ; // 已经加载完成子包,不再需要此首屏渲染了
+    }
+    
     if(firstFlashTexture){
       drawScene(gl, programInfo, buffers, firstFlashTexture, 0);
-    }
-    else{
-      requestAnimationFrame(loop);
-    }
+    }    
+    requestAnimationFrame(loop);
   }
   
   requestAnimationFrame(loop);
