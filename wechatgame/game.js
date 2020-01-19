@@ -39,16 +39,22 @@ function _main_canvas_(){
       // 绘制背景
       ctx.drawImage(bgImage, (windowWidth - width)*0.5, (windowHeight - height)*0.5, width, height);
     }
-
-
   }
 
+  /**
+   * 主循环
+   */
   function loop(){
     drawScene();
     requestAnimationFrame(loop);
-  } 
+  }
 }
 
+/**
+ * 加载指定的图片资源
+ * @param {*} image 
+ * @param {*} url 
+ */
 function loadImage(image, url){
   return new Promise(function(resolve, _){
     image.onload = function(){
