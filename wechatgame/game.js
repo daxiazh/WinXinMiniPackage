@@ -1,3 +1,4 @@
+const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 
 _main_();
 
@@ -7,15 +8,8 @@ _main_();
 function _main_() {
   let errLog = "";  // 用来存储错误日志
 
-  // 先加载首屏纹理,因为它是异步加载的,加载过程中可以同步做后面的初始化工作
-  const firstFlashImageLoadPromise = new Promise(function (resolve, _){    
-    const image = wx.createImage();
-    image.onload = function(){
-      resolve(image);
-    }
-    image.src = "first_flash.jpg";
-  });
-
+  // 先加载首屏背景纹理,因为它是异步加载的,加载过程中可以同步做后面的初始化工作
+  const bgImageLoading = loadImage("first_package_images/first_flash.jpg");
   
   // 显示首屏纹理的 Vertex Shader
   const vsSource = `
@@ -73,14 +67,15 @@ function _main_() {
 
   // Here's where we call the routine that builds all the 
   // objects we'll be drawing
-  const buffers = initQuadBuffers(gl);
+  let buffers;
 
   let firstFlashTexture = null;
 
   // 首屏图片加载完成后初始化 webgl 纹理
-  firstFlashImageLoadPromise.then(function(image){
+  bgImageLoading.then(function(image){
     // 加载首屏纹理
     firstFlashTexture = loadTexture(gl, image);
+    buffers = initQuadBuffers(gl, image.width, image.height);
     image.src = ""; // 清除图片的内存占用
   });
 
@@ -152,17 +147,27 @@ function loadShader(gl, type, source) {
  * 初始化全屏矩形的 buffer
  * @param {Webgl} gl 
  */
-function initQuadBuffers(gl){
+function initQuadBuffers(gl, bgWidth, bgHeight){
   // Create a buffer for the rectangle's vertex positions.
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
+  // 距中显示背景,计算坐标
+  // 计算背景的缩放比
+  const widthScale = windowWidth/bgWidth;
+  const heightScale = windowHeight/bgHeight;
+  const bgScale = Math.max(widthScale, heightScale);
+  const width = bgWidth*bgScale;
+  const height = bgHeight*bgScale;
+  const x = width/windowWidth*2 - 1;  // 变换到投影坐标系
+  const y = height/windowHeight*2 - 1;// 变换到投影坐标系
+  
   // 创建全屏矩形的顶点坐标
   const positions = [
-    -1.0, -1.0,
-     1.0, -1.0,
-     1.0,  1.0,
-    -1.0,  1.0];
+    -x, -y,
+     x, -y,
+     x,  y,
+    -x,  y];
 
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
@@ -213,6 +218,29 @@ function loadTexture(gl, image){
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   return texture;
+}
+
+/**
+ * 屏幕坐标()到投影坐标系
+ */
+function screenToProjectCoord(screenX, screenY){
+  return [screenX/windowWidth*2.0 - 1.0, screenY/windowHeight*2.0 - 1.0];
+}
+
+/**
+ * 加载指定的图片资源
+ * @param {*} image 
+ * @param {*} url 
+ */
+function loadImage(url) {
+  return new Promise(function (resolve, _) {
+    const image = wx.createImage();
+    image.onload = function () {
+      resolve(image);
+    }
+
+    image.src = url;
+  });
 }
 
 /**
