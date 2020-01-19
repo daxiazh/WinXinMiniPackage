@@ -1,4 +1,5 @@
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
+wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为开始时我们主要是在加载资源.
 
 _main_();
 
@@ -83,7 +84,9 @@ function _main_() {
     if(firstFlashTexture){
       drawScene(gl, programInfo, buffers, firstFlashTexture, 0);
     }
-    requestAnimationFrame(loop);
+    else{
+      requestAnimationFrame(loop);
+    }
   }
   
   requestAnimationFrame(loop);
