@@ -24,8 +24,8 @@ function init(gl){
 
     mBgImage = wx.createImage();          // 背景图片
     mLoadingBarImage = wx.createImage();  // 进度条背景图片
-    const bgImageLoading = loadImage(mBgImage, "first_package_images/first_flash.jpg");
-    const loadingBarImageLoading = loadImage(mLoadingBarImage, "first_package_images/loading_bar.png");
+    const bgImageLoading = loadImage(mBgImage, "first_package/images/first_flash.jpg");
+    const loadingBarImageLoading = loadImage(mLoadingBarImage, "first_package/images/loading_bar.png");
 
     mWebGL = gl;
     
@@ -62,6 +62,9 @@ function drawScene (loadingBarProgress){
         mCtx.drawImage(mBgImage, (windowWidth - width)*0.5, (windowHeight - height)*0.5, width, height);
     }
 
+    // mCtx.setFontSize(30);
+    mCtx.fillStyle = '#FFA500';
+    mCtx.font = "30px serif";
     mCtx.fillText("测试一下字体", 100, 100);
 
     // 更新离屏纹理内容
