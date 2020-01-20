@@ -70,13 +70,13 @@ function _main_() {
       return; // 已经加载完成子包,不再需要此首屏渲染了
     }
 
-    if (fullScreenTexture) {
+    if (fullScreenTexture) {  // 有全屏纹理时才会渲染场景
       drawScene(gl, programInfo, buffers, fullScreenTexture, 0);
     }
     requestAnimationFrame(loop);
   }
 
-  if (false) {
+  if (true) {
     // 加载子包
     const loadSubPackagePromise = new Promise(function (resolve, reject) {
       const loadTask = wx.loadSubpackage({
@@ -102,8 +102,9 @@ function _main_() {
     // 等待子包的加载
     loadSubPackagePromise.then(function () {
       // 释放占用的资源
-      //gl.deleteProgram(programInfo.program);
-      //firstFlashTexture && gl.deleteTexture(firstFlashTexture);
+      fullScreenTexture = null;
+      offScreenCanvas.release();
+      offScreenCanvas = null;      
       programInfo = null;
       buffers = null;
       wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了    

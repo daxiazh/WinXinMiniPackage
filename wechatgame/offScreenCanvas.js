@@ -88,7 +88,7 @@ function loadImage(image, url){
  * 释放占用的资源
  */
 function release(){
-    mWebGL.bindTexture(gl.TEXTURE_2D, null);
+    mWebGL.bindTexture(mWebGL.TEXTURE_2D, null);
     mWebGL.deleteTexture(mTexture);
     mTexture = undefined;
     mCtx = undefined;
