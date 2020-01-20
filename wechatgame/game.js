@@ -1,6 +1,6 @@
 'use strict';
 
-let offScreenCanvas = require('./offScreenCanvas');
+let offScreenCanvas = require('./first_package/offScreenCanvas');
 
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为开始时我们主要是在加载资源.

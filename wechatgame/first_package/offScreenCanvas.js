@@ -92,7 +92,7 @@ function release(){
     mWebGL.bindTexture(mWebGL.TEXTURE_2D, null);
     mWebGL.deleteTexture(mTexture);
     mTexture = undefined;
-    mCtx = undefined;
+	mCtx = undefined;
     mWebGL = undefined;    
     mBgImage.src = "";
     mBgImage = undefined;
