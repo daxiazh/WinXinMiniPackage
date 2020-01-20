@@ -14,6 +14,8 @@ let subpackageLoadingInfo = {
 
 _main_();
 
+// ------------------------ 下面是封装的函数 ---------------------------------
+
 /**
  * 目前用于快速显示首屏,放在主包中执行的函数
  */
@@ -52,18 +54,35 @@ function _main_() {
     },
   };
 
-  // Here's where we call the routine that builds all the 
-  // objects we'll be drawing
-  let buffers;
+  // 初始化全屏四边形的顶点缓冲
+  let buffers = initFullScreenQuadBuffers(gl);
   let fullScreenTexture = null; // 全屏的纹理
 
-  // 首屏图片加载完成后初始化 webgl 纹理
+    // 加载子包
+  const loadSubPackagePromise = loadSubpackage();
+    
+    // 首屏图片加载完成后初始化 webgl 纹理
   offScreenPromise.then(function (texture) {
     // 加载首屏纹理
     fullScreenTexture = texture;
-    buffers = initFullScreenQuadBuffers(gl);
+
+    // 等待子包的加载. 放在这监听,以免子包的加载先完成了
+    loadSubPackagePromise.then(function () {
+      // 释放占用的资源
+      fullScreenTexture = null;
+      offScreenCanvas.release();
+      offScreenCanvas = null;
+      programInfo = null;
+      buffers = null;
+      wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了
+    });
   });
 
+  // 开始主循环
+  requestAnimationFrame(loop);
+  return true;
+
+  
   // 主循环函数,显示loading条
   function loop() {
     if (programInfo === null) {
@@ -75,48 +94,7 @@ function _main_() {
     }
     requestAnimationFrame(loop);
   }
-
-  if (true) {
-    // 加载子包
-    const loadSubPackagePromise = new Promise(function (resolve, reject) {
-      const loadTask = wx.loadSubpackage({
-        name: 'stage1', // name 可以填 name 或者 root
-        success: function (res) {
-          // 分包加载成功后通过 success 回调
-          resolve();
-        },
-        fail: function (res) {
-          reject();
-          // 分包加载失败通过 fail 回调
-        }
-      });
-
-      loadTask.onProgressUpdate(res => {
-        subpackageLoadingInfo = res;
-        console.log('下载进度', res.progress)
-        console.log('已经下载的数据长度', res.totalBytesWritten)
-        console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
-      });
-    })
-
-    // 等待子包的加载
-    loadSubPackagePromise.then(function () {
-      // 释放占用的资源
-      fullScreenTexture = null;
-      offScreenCanvas.release();
-      offScreenCanvas = null;      
-      programInfo = null;
-      buffers = null;
-      wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了    
-    });
-  }
-
-  // 开始主循环
-  requestAnimationFrame(loop);
-  return true;
 }
-
-// ------------------------ 下面是封装的函数 ---------------------------------
 
 /**
  * 初始化离屏纹理渲染的 shader
@@ -267,12 +245,13 @@ function initFullScreenQuadBuffers(gl) {
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  // 创建全屏矩形的顶点坐标
+  // 创建全屏矩形的顶点坐标, TRIANGLE_STRIP
   const positions = [
+    -1,  1,
     -1, -1,
-    1, -1,
-    1, 1,
-    -1, 1];
+     1,  1,
+     1, -1,
+  ];
 
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
@@ -284,30 +263,17 @@ function initFullScreenQuadBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
   const textureCoordinates = [
-    0.0, 1.0,
-    1.0, 1.0,
-    1.0, 0.0,
     0.0, 0.0,
+    0.0, 1.0,
+    1.0, 0.0,
+    1.0, 1.0,
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
 
-
-  // 生成索引缓冲
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-  // 顶点索引
-  const indices = [
-    0, 1, 2, 0, 2, 3
-  ];
-
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
   return {
     position: positionBuffer,
-    textureCoord: textureCoordBuffer,
-    indices: indexBuffer,
+    textureCoord: textureCoordBuffer
   }
 }
 
@@ -338,9 +304,6 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
   }
 
-  // 绑定 index 缓冲
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
   // 设置 shader
   gl.useProgram(programInfo.program);
 
@@ -350,6 +313,33 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
   gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
   {  // 绘制全屏四边形
-    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
+}
+
+/**
+ * 加载子包
+ */
+function loadSubpackage(){
+  // 加载子包
+  return new Promise(function (resolve, reject) {
+    const loadTask = wx.loadSubpackage({
+      name: 'stage1', // name 可以填 name 或者 root
+      success: function (res) {
+        // 分包加载成功后通过 success 回调
+        resolve();
+      },
+      fail: function (res) {
+        reject();
+        // 分包加载失败通过 fail 回调
+      }
+    });
+
+    loadTask.onProgressUpdate(res => {
+      subpackageLoadingInfo = res;
+      console.log('下载进度', res.progress)
+      console.log('已经下载的数据长度', res.totalBytesWritten)
+      console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
+    });
+  })
 }
