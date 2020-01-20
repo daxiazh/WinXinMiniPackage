@@ -38,15 +38,16 @@ function init(gl){
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
         // 绘制一帧
-        DrawScene();        
+        drawScene();        
         return mTexture;    // 返回当前使用的纹理
     })
 }
 
 /**
  * 绘制场景的函数
+ * @param loadingBarProgress 当前进度条进度
  */
-function DrawScene (){
+function drawScene (loadingBarProgress){
     // 清除屏幕
     mCtx.clearRect(0, 0, windowWidth, windowHeight)
     
@@ -102,3 +103,4 @@ function release(){
 
 exports.init = init;
 exports.release = release;
+exports.drawScene = drawScene;

@@ -5,6 +5,8 @@ let offScreenCanvas = require('./offScreenCanvas');
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 wx.setPreferredFramesPerSecond(10); // 10足够了,不需要更高的帧率,因为开始时我们主要是在加载资源.
 
+let loadingBarProgress = 0;     // 进度条的进度
+
 // 保存子包下载的进度信息
 let subpackageLoadingInfo = {
   progress: 0,
@@ -79,10 +81,10 @@ function _main_() {
   });
 
   // 开始主循环
+  let preLoadingBarProgress = loadingBarProgress;
   requestAnimationFrame(loop);
   return true;
 
-  
   // 主循环函数,显示loading条
   function loop() {
     if (programInfo === null) {
@@ -90,6 +92,11 @@ function _main_() {
     }
 
     if (fullScreenTexture) {  // 有全屏纹理时才会渲染场景
+      // 进度条有变化,更新一下场景渲染
+      if(preLoadingBarProgress != loadingBarProgress){
+        preLoadingBarProgress = loadingBarProgress;
+        offScreenCanvas.drawScene(loadingBarProgress);
+      }
       drawScene(gl, programInfo, buffers, fullScreenTexture, 0);
     }
     requestAnimationFrame(loop);
@@ -337,6 +344,7 @@ function loadSubpackage(){
 
     loadTask.onProgressUpdate(res => {
       subpackageLoadingInfo = res;
+      loadingBarProgress = res.progress;
       console.log('下载进度', res.progress)
       console.log('已经下载的数据长度', res.totalBytesWritten)
       console.log('预期需要下载的数据总长度', res.totalBytesExpectedToWrite)
