@@ -10,8 +10,8 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
   wx.setPreferredFramesPerSecond(10); // 10帧足够了,不需要更高的帧率,因为开始时我们主要是在加载资源.
 
   let mSubpackageloadingProgress = 0; // 进度条的进度
-  let mResourcesLoadingProgress = 0; // 游戏资源加载的进度
-  let mLoadingText = "加载子包中 ..."; // 进度条的文本内容
+  let mResourcesLoadingProgress = 0;  // 游戏资源加载的进度
+  let mLoadingText = "加载子包中 ";     // 进度条的文本内容
 
   GameGlobal.firstPackage = {
     // 更新资源加载的进度, 0 ~ 1 范围
@@ -80,7 +80,7 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
       offScreenCanvas.release();
       offScreenCanvas = null;
       programInfo = null;
-      mLoadingText = "加载资源中 ...";
+      mLoadingText = "加载资源中 ";
       buffers = null;
       wx.setPreferredFramesPerSecond(60); // 恢复60帧,因为要开始游戏的内容渲染了
     });
@@ -104,7 +104,7 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
         (mSubpackageloadingProgress / 100.0) * 0.5; // 下载子包与资源加载各占一部分进度
       // 有全屏纹理时才会渲染场景
       // 进度条有变化,更新一下场景渲染
-      if (preLoadingBarProgress != progress) {
+      if (true || preLoadingBarProgress != progress) { // 强制更新进度
         preLoadingBarProgress = progress;
         offScreenCanvas.drawScene(progress, mLoadingText);
       }

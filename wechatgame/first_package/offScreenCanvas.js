@@ -45,6 +45,8 @@ function init(gl){
     })
 }
 
+let mLoadingTextIndex = 0;  // 存储显示点数
+
 /**
  * 绘制场景的函数
  * @param loadingBarProgress 当前进度条进度
@@ -77,19 +79,22 @@ function drawScene (loadingBarProgress, progressText){
         mCtx.drawImage(image, sx, sy, sw, sh, dx*uniformScale, dy*uniformScale, dw*uniformScale, dh*uniformScale);
     }
 
-    { // 显示进度条
+    if(true){ // 显示进度条 // 注: 暂时屏蔽了进度条,因为在合包模式时,微信并不更新子包的下载进度,不知道为什么,可能是微信的Bug
         // 注: 下面的具体数值都是以设计分辨率为参考
         const scaledHeight = windowHeight/uniformScale; // 相对于底部的偏移量
         // 绘制进度条背景
-        drawImage(mLoadingBarImage, 0, 0, 480, 73,    73, scaledHeight - 215, 494, 83);    // 480,73 是进度条图片中的坐标,见 loading_bar.png; 其它数值见 LoadingSceneEle.prefab 中相关进度条的坐标
+        // drawImage(mLoadingBarImage, 0, 0, 480, 73,    73, scaledHeight - 215, 494, 83);    // 480,73 是进度条图片中的坐标,见 loading_bar.png; 其它数值见 LoadingSceneEle.prefab 中相关进度条的坐标
         // 进度条        
-        drawImage(mLoadingBarImage, 18, 74, 444 * loadingBarProgress, 36,  93, scaledHeight - 191, 452 * loadingBarProgress, 36);
+        // drawImage(mLoadingBarImage, 18, 74, 444 * loadingBarProgress, 36,  93, scaledHeight - 191, 452 * loadingBarProgress, 36);
 
         if(progressText){
             mCtx.fillStyle = '#FFFFFF';
             mCtx.font = "18px serif";
+
+            const addStr = [".", "..", "..."];
+
             const mt = mCtx.measureText(progressText);
-            mCtx.fillText(progressText, (windowWidth - mt.width)/2, 936 * uniformScale);
+            mCtx.fillText(progressText + addStr[(mLoadingTextIndex++)%addStr.length], (windowWidth - mt.width)/2, 936 * uniformScale);
         }
     }
 
