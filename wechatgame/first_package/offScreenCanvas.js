@@ -11,7 +11,6 @@ let mTexture;           // 用于存储离屏渲染内容的纹理
 let mWebGL;             // webGL
 let mBgImage;           // 背景图片
 let mLoadingBarImage;   // 进度条图片
-let mProgress = 1;      // 进度条进度, 0 ~ 1 的范围
 
 /**
  * 初始化资源加载
@@ -81,8 +80,8 @@ function drawScene (loadingBarProgress){
         // 注: 下面的具体数值都是以设计分辨率为参考        
         // 绘制进度条背景
         drawImage(mLoadingBarImage, 0, 0, 480, 73,    73, 931, 494, 83);    // 480,73 是进度条图片中的坐标,见 loading_bar.png; 其它数值见 LoadingSceneEle.prefab 中相关进度条的坐标
-        const barWidth = 444;   // 进度条的宽度
-        drawImage(mLoadingBarImage, 18, 74, barWidth*mProgress, 36,  95, 955, 446*mProgress, 36);
+        // 进度条        
+        drawImage(mLoadingBarImage, 18, 74, 444 * loadingBarProgress, 36,  93, 955, 452 * loadingBarProgress, 36);
     }
 
     // mCtx.setFontSize(30);

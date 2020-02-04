@@ -88,7 +88,7 @@ function loop() {
     // 进度条有变化,更新一下场景渲染
     if (preLoadingBarProgress != loadingBarProgress) {
       preLoadingBarProgress = loadingBarProgress;
-      offScreenCanvas.drawScene(loadingBarProgress);
+      offScreenCanvas.drawScene(loadingBarProgress/100.0);
     }
     drawScene(gl, programInfo, buffers, fullScreenTexture, 0);
   }
