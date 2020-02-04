@@ -87,14 +87,17 @@ function drawScene (loadingBarProgress, progressText){
         // 进度条        
         // drawImage(mLoadingBarImage, 18, 74, 444 * loadingBarProgress, 36,  93, scaledHeight - 191, 452 * loadingBarProgress, 36);
 
-        if(progressText){
-            mCtx.fillStyle = '#FFFFFF';
-            mCtx.font = "18px serif";
-
+        if(progressText){            
+            mCtx.font = "20px serif";
             const addStr = [".", "..", "..."];
-
             const mt = mCtx.measureText(progressText);
-            mCtx.fillText(progressText + addStr[(mLoadingTextIndex++)%addStr.length], (windowWidth - mt.width)/2, 936 * uniformScale);
+            const text = progressText + addStr[(mLoadingTextIndex++)%addStr.length];
+            const textPosX = (windowWidth - mt.width)/2;
+            const textPosY = (scaledHeight - 100) * uniformScale;
+            // mCtx.fillStyle = '#000000';
+            // mCtx.fillText(text, textPosX + 2, textPosY + 2);            
+            mCtx.fillStyle = '#FFFFFF';
+            mCtx.fillText(text, textPosX, textPosY);
         }
     }
 

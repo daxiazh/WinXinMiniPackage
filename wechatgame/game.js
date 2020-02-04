@@ -361,6 +361,7 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
   function loadSubpackage() {
     // 加载子包
     return new Promise(function(resolve, reject) {
+      // 可以重试的子包加载函数
       (function _load(){
         const loadTask = wx.loadSubpackage({
           name: "stage1", // name 可以填 name 或者 root
@@ -383,6 +384,7 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
           // console.log("预期需要下载的数据总长度", res.totalBytesExpectedToWrite);
         });
       })();
+
     });
   }
 })();
