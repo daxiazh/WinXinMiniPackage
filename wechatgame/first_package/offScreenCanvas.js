@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * 离屏的 Canvas,我们通过 canvas 绘制真正的首屏相关的内容,减少代码量
  */
@@ -5,10 +7,11 @@
 const { windowWidth, windowHeight, pixelRatio} = wx.getSystemInfoSync();
 let mCanvas;
 let mCtx; 
-let mTexture;          // 用于存储离屏渲染内容的纹理
-let mWebGL;            // webGL
-let mBgImage;          // 背景图片
-let mLoadingBarImage;  // 进度条图片
+let mTexture;           // 用于存储离屏渲染内容的纹理
+let mWebGL;             // webGL
+let mBgImage;           // 背景图片
+let mLoadingBarImage;   // 进度条图片
+let mProgress = 1;      // 进度条进度, 0 ~ 1 的范围
 
 /**
  * 初始化资源加载
@@ -50,16 +53,36 @@ function init(gl){
 function drawScene (loadingBarProgress){
     // 清除屏幕
     mCtx.clearRect(0, 0, windowWidth, windowHeight)
-    
+
+    // 计算背景的缩放比    
     { // 距中显示背景
-        // 计算背景的缩放比
         const widthScale = windowWidth/mBgImage.width;
         const heightScale = windowHeight/mBgImage.height;
-        const bgScale = Math.max(widthScale, heightScale);
-        const width = mBgImage.width*bgScale;
-        const height = mBgImage.height*bgScale;
+        const uniformScale = Math.max(widthScale, heightScale); // 选较大的缩放值来作为x,y的统一缩放,来保证缩放不变形
+        const width = mBgImage.width*uniformScale;
+        const height = mBgImage.height*uniformScale;
         // 绘制背景
         mCtx.drawImage(mBgImage, (windowWidth - width)*0.5, (windowHeight - height)*0.5, width, height);
+    }
+
+    const designWidth = 640;    // 设计分辨率
+    const designHeight = 1136;  // 设计分辨率
+
+    const widthScale = windowWidth/designWidth;
+    const heightScale = windowHeight/designHeight;
+    const uniformScale = Math.max(widthScale, heightScale); // 选较大的缩放值来作为x,y的统一缩放,来保证缩放不变形
+
+    // 自动变换坐标系,绘制给定的image
+    function drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh){
+        mCtx.drawImage(image, sx, sy, sw, sh, dx*uniformScale, dy*uniformScale, dw*uniformScale, dh*uniformScale);
+    }
+
+    { // 显示进度条
+        // 注: 下面的具体数值都是以设计分辨率为参考        
+        // 绘制进度条背景
+        drawImage(mLoadingBarImage, 0, 0, 480, 73,    73, 931, 494, 83);    // 480,73 是进度条图片中的坐标,见 loading_bar.png; 其它数值见 LoadingSceneEle.prefab 中相关进度条的坐标
+        const barWidth = 444;   // 进度条的宽度
+        drawImage(mLoadingBarImage, 18, 74, barWidth*mProgress, 36,  95, 955, 446*mProgress, 36);
     }
 
     // mCtx.setFontSize(30);
