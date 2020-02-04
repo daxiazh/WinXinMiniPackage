@@ -5,7 +5,15 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
 const { windowWidth, windowHeight } = wx.getSystemInfoSync();
 wx.setPreferredFramesPerSecond(10); // 10帧足够了,不需要更高的帧率,因为开始时我们主要是在加载资源.
 
-let loadingBarProgress = 0; // 进度条的进度
+let mSubpackageloadingProgress = 0; // 进度条的进度
+let mResourcesLoadingProgress = 0;  // 游戏资源加载的进度
+
+GameGlobal.firstPackage = {
+  // 更新资源加载的进度, 0 ~ 1 范围
+  updateLoadingProgress : function(progress){
+    mResourcesLoadingProgress = progress;
+  }
+};
 
 // 保存子包下载的进度信息
 let subpackageLoadingInfo = {
@@ -73,7 +81,7 @@ offScreenPromise.then(function(texture) {
 });
 
 // 开始主循环
-let preLoadingBarProgress = loadingBarProgress;
+let preLoadingBarProgress = 0;
 requestAnimationFrame(loop);
 return true;
 
@@ -84,11 +92,13 @@ function loop() {
   }
 
   if (fullScreenTexture) {
+    // 计算一下总的进度
+    const progress = (mResourcesLoadingProgress*0.5 + mSubpackageloadingProgress/100.0*0.5)/2.0; // 下载子包与资源加载各占一部分进度
     // 有全屏纹理时才会渲染场景
     // 进度条有变化,更新一下场景渲染
-    if (preLoadingBarProgress != loadingBarProgress) {
-      preLoadingBarProgress = loadingBarProgress;
-      offScreenCanvas.drawScene(loadingBarProgress/100.0);
+    if (preLoadingBarProgress != progress) {
+      preLoadingBarProgress = progress;
+      offScreenCanvas.drawScene(progress);
     }
     drawScene(gl, programInfo, buffers, fullScreenTexture, 0);
   }
@@ -357,10 +367,10 @@ function loadSubpackage() {
 
     loadTask.onProgressUpdate(res => {
       subpackageLoadingInfo = res;
-      loadingBarProgress = res.progress;
-      console.log("下载进度", res.progress);
-      console.log("已经下载的数据长度", res.totalBytesWritten);
-      console.log("预期需要下载的数据总长度", res.totalBytesExpectedToWrite);
+      mSubpackageloadingProgress = res.progress;
+      // console.log("下载进度", res.progress);
+      // console.log("已经下载的数据长度", res.totalBytesWritten);
+      // console.log("预期需要下载的数据总长度", res.totalBytesExpectedToWrite);
     });
   });
 }
