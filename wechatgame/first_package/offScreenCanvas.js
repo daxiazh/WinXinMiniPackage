@@ -40,7 +40,7 @@ function init(gl){
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
         // 绘制一帧
-        drawScene();        
+        drawScene(0);
         return mTexture;    // 返回当前使用的纹理
     })
 }
@@ -48,8 +48,9 @@ function init(gl){
 /**
  * 绘制场景的函数
  * @param loadingBarProgress 当前进度条进度
+ * @param progressText 进度条的文本
  */
-function drawScene (loadingBarProgress){
+function drawScene (loadingBarProgress, progressText){
     // 清除屏幕
     mCtx.clearRect(0, 0, windowWidth, windowHeight)
 
@@ -69,7 +70,7 @@ function drawScene (loadingBarProgress){
 
     const widthScale = windowWidth/designWidth;
     const heightScale = windowHeight/designHeight;
-    const uniformScale = Math.max(widthScale, heightScale); // 选较大的缩放值来作为x,y的统一缩放,来保证缩放不变形
+    const uniformScale = Math.min(widthScale, heightScale); // 选较大的缩放值来作为x,y的统一缩放,来保证缩放不变形
 
     // 自动变换坐标系,绘制给定的image
     function drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh){
@@ -77,17 +78,20 @@ function drawScene (loadingBarProgress){
     }
 
     { // 显示进度条
-        // 注: 下面的具体数值都是以设计分辨率为参考        
+        // 注: 下面的具体数值都是以设计分辨率为参考
+        const scaledHeight = windowHeight/uniformScale; // 相对于底部的偏移量
         // 绘制进度条背景
-        drawImage(mLoadingBarImage, 0, 0, 480, 73,    73, 931, 494, 83);    // 480,73 是进度条图片中的坐标,见 loading_bar.png; 其它数值见 LoadingSceneEle.prefab 中相关进度条的坐标
+        drawImage(mLoadingBarImage, 0, 0, 480, 73,    73, scaledHeight - 215, 494, 83);    // 480,73 是进度条图片中的坐标,见 loading_bar.png; 其它数值见 LoadingSceneEle.prefab 中相关进度条的坐标
         // 进度条        
-        drawImage(mLoadingBarImage, 18, 74, 444 * loadingBarProgress, 36,  93, 955, 452 * loadingBarProgress, 36);
-    }
+        drawImage(mLoadingBarImage, 18, 74, 444 * loadingBarProgress, 36,  93, scaledHeight - 191, 452 * loadingBarProgress, 36);
 
-    // mCtx.setFontSize(30);
-    mCtx.fillStyle = '#FFA500';
-    mCtx.font = "30px serif";
-    mCtx.fillText("测试一下字体", 100, 100);
+        if(progressText){
+            mCtx.fillStyle = '#FFFFFF';
+            mCtx.font = "18px serif";
+            const mt = mCtx.measureText(progressText);
+            mCtx.fillText(progressText, (windowWidth - mt.width)/2, 936 * uniformScale);
+        }
+    }
 
     // 更新离屏纹理内容
     mWebGL.bindTexture(mWebGL.TEXTURE_2D, mTexture);
