@@ -361,25 +361,28 @@ let offScreenCanvas = require("./first_package/offScreenCanvas");
   function loadSubpackage() {
     // 加载子包
     return new Promise(function(resolve, reject) {
-      const loadTask = wx.loadSubpackage({
-        name: "stage1", // name 可以填 name 或者 root
-        success: function(res) {
-          // 分包加载成功后通过 success 回调
-          resolve();
-        },
-        fail: function(res) {
-          reject();
-          // 分包加载失败通过 fail 回调
-        }
-      });
+      (function _load(){
+        const loadTask = wx.loadSubpackage({
+          name: "stage1", // name 可以填 name 或者 root
+          success: function(res) {
+            // 分包加载成功后通过 success 回调
+            resolve();
+          },
+          fail: function(res) {
+            _load();  // 加载子包失败了???,再次重试
+            // TODO: BI 打点
+            // 分包加载失败通过 fail 回调
+          }
+        });
 
-      loadTask.onProgressUpdate(res => {
-        subpackageLoadingInfo = res;
-        mSubpackageloadingProgress = res.progress;
-        // console.log("下载进度", res.progress);
-        // console.log("已经下载的数据长度", res.totalBytesWritten);
-        // console.log("预期需要下载的数据总长度", res.totalBytesExpectedToWrite);
-      });
+        loadTask.onProgressUpdate(res => {
+          subpackageLoadingInfo = res;
+          mSubpackageloadingProgress = res.progress;
+          // console.log("下载进度", res.progress);
+          // console.log("已经下载的数据长度", res.totalBytesWritten);
+          // console.log("预期需要下载的数据总长度", res.totalBytesExpectedToWrite);
+        });
+      })();
     });
   }
 })();
