@@ -3,22 +3,22 @@
  */
 
 const { windowWidth, windowHeight, pixelRatio} = wx.getSystemInfoSync();
- let mCanvas;
- let mCtx; 
- let mTexture;          // 用于存储离屏渲染内容的纹理
- let mWebGL;            // webGL
- let mBgImage;          // 背景图片
- let mLoadingBarImage;  // 进度条图片
+let mCanvas;
+let mCtx; 
+let mTexture;          // 用于存储离屏渲染内容的纹理
+let mWebGL;            // webGL
+let mBgImage;          // 背景图片
+let mLoadingBarImage;  // 进度条图片
 
 /**
  * 初始化资源加载
  * @param gl 使用的 webgl
  * @returns 返回包含离屏的纹理
  */
-function init(gl){    
+function init(gl){
     // 创建离屏 Canvas
     mCanvas = wx.createCanvas();    
-    mCanvas.width = windowWidth;//*pixelRatio;
+    mCanvas.width = windowWidth;//*pixelRatio;  // pixelRatio 用来考虑高清屏,但这么高的分辨率会导致性能及内存占用问题,暂时屏蔽了
     mCanvas.height = windowHeight;//*pixelRatio;
     mCtx = mCanvas.getContext('2d');      // 获取离屏的 canvas
 
